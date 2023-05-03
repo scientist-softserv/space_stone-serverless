@@ -1,0 +1,17 @@
+source "https://rubygems.org"
+
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+git_source(:github) { |repo| "git@github.com:#{repo}.git" }
+
+gem 'dotenv'
+gem 'httparty'
+gem 'nokogiri'
+gem 'pry', group: [:test]
+gem 'rake', group: [:development]
+gem 'rspec', '~> 3.0', groups: [:development, :test]
+gem 'rubyzip'
+# gem 'derivative-rodeo', github: 'scientist-softserv/derivative-rodeo', branch: 'adjustments_for_lambdas'
+gem 'derivative_rodeo', github: 'scientist-softserv/derivative-rodeo', branch: 'main'
+gem 'byebug', group: [:development, :test]

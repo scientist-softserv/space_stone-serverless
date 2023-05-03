@@ -1,0 +1,3 @@
+work_identifier,file_set_filename,path_to_original,monochrome,hocr,mime_type
+123,ocr_color.tiff,spec/fixtures/files/123/ocr_color.tiff,spec/fixtures/files/123/mono/ocr_mono.tiff,spec/fixtures/files/123/ocr/ocr_color.hocr,
+456,ocr_color.tiff,spec/fixtures/files/456/ocr_color.tiff,spec/fixtures/files/456/mono/ocr_mono.tiff,spec/fixtures/files/456/ocr/ocr_color.hocr,image/tiff

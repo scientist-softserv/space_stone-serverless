@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "serverless-ignore": "^0.2.1",
+    "serverless-lift": "^1.25.1",
+    "serverless-ruby-layer": "^1.6.0"
+  },
+  "scripts": {
+    "spec": "bundle exec rspec"
+  }
+}
