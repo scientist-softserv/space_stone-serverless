@@ -55,3 +55,7 @@ build-iPhoneSimulator/
 # package directories
 node_modules
 *~undo-tree~
+.byebug_history
+GPATH
+GRTAGS
+GTAGS

@@ -5,7 +5,7 @@ Bundler.require(:default)
 
 def process_csv(event:, context:)
   event_body = get_event_body(event: event, return_json: false)
-  send_results("Enqueued X Records")
+  send_results(event_body)
 end
 
 def download(event:, context:)
