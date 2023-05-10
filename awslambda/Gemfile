@@ -1,5 +1,3 @@
-source "https://rubygems.org"
-
 # frozen_string_literal: true
 
 source 'https://rubygems.org'
@@ -13,5 +11,5 @@ gem 'rake', group: [:development]
 gem 'rspec', '~> 3.0', groups: [:development, :test]
 gem 'rubyzip'
 # gem 'derivative-rodeo', github: 'scientist-softserv/derivative-rodeo', branch: 'adjustments_for_lambdas'
-gem 'derivative_rodeo', github: 'scientist-softserv/derivative-rodeo', branch: 'main'
+gem 'derivative_rodeo', git: 'https://github.com/scientist-softserv/derivative_rodeo.git', branch: 'main'
 gem 'byebug', group: [:development, :test]

@@ -114,7 +114,7 @@ constructs:
 
 plugins:
   - serverless-lift
-  - ../../serverless-ruby-layer
+  - ./../serverless-ruby-layer
   - serverless-ignore
 custom:
   rubyLayer:
