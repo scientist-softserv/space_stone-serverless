@@ -1,0 +1,22 @@
+# Ignore everything
+*
+
+# Allow files and directories
+!/Gemfile
+!/Gemfile.lock
+!/derivative_rodeo/**
+!/derivative_rodeo
+
+# Ignore unnecessary files inside allowed directories
+# This should go after the allowed directories
+**/*~
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+
+# derivative_rodeo dev time
+**/spec
+**/coverage
+**/doc
+**/git-hooks
+**/tm

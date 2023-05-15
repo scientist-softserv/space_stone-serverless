@@ -3,6 +3,8 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "git@github.com:#{repo}.git" }
 
+gem 'byebug', group: [:development, :test]
+gem 'derivative_rodeo', path: './derivative_rodeo'
 gem 'dotenv'
 gem 'httparty'
 gem 'nokogiri'
@@ -10,6 +12,3 @@ gem 'pry', group: [:test]
 gem 'rake', group: [:development]
 gem 'rspec', '~> 3.0', groups: [:development, :test]
 gem 'rubyzip'
-# gem 'derivative-rodeo', github: 'scientist-softserv/derivative-rodeo', branch: 'adjustments_for_lambdas'
-gem 'derivative_rodeo', git: 'https://github.com/scientist-softserv/derivative_rodeo.git', branch: 'main'
-gem 'byebug', group: [:development, :test]

@@ -168,10 +168,12 @@ WORKDIR /var/task
 # #RUN yum install -y libjpeg-devel libpng-devel
 
 # # Copy Gemfile from host into container's current directory
-COPY Gemfile* .
+# TODO remove rodeo
+COPY derivative_rodeo ./derivative_rodeo
+COPY Gemfile* ./
 
 RUN bundle config set --local path build
-RUN bundle config set --local without test development
+# RUN bundle config set --local without test development
 
 RUN bundle
 

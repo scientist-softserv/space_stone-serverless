@@ -1,6 +1,6 @@
-/spec/
-/tmp/
-
+spec/**
+tmp/**
+.ruby_layer/**
 # Used by dotenv library to load environment variables.
 # .env
 
@@ -13,15 +13,15 @@ build-iPhoneOS/
 build-iPhoneSimulator/
 
 ## Documentation cache and generated files:
-/.yardoc/
-/_yardoc/
-/doc/
-/rdoc/
+./.yardoc/
+./_yardoc/
+./doc/
+./rdoc/
 
 ## Environment normalization:
-/.bundle/
-/vendor/bundle
-/lib/bundler/man/
+.bundle/
+vendor/bundle
+lib/bundler/man/
 
 # for a library or gem, you might want to ignore these files since the code is
 # intended to run in multiple environments; otherwise, check them in:
@@ -37,4 +37,17 @@ build-iPhoneSimulator/
 
 # package directories
 node_modules
+
+# emacs stuff
 *~undo-tree~
+GPATH
+GRTAGS
+GTAGS
+tags
+
+# derivative_rodeo dev time
+derivative_rodeo/coverage/**
+derivative_rodeo/doc/**
+derivative_rodeo/git-hooks/**
+derivative_rodeo/spec/**
+derivative_rodeo/tmp/**

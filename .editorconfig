@@ -1,0 +1,15 @@
+[*.yml]
+indent_size = 2
+indent_style = spaces
+
+[*.js]
+indent_size = 2
+indent_style = spaces
+
+[*.ruby]
+indent_size = 2
+indent_style = spaces
+
+[*.json]
+indent_size = 2
+indent_style = spaces

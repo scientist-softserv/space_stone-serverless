@@ -54,12 +54,12 @@ provider:
 #    - include-me-dir/**
 
 functions:
-  process_csv:
-    handler: handler.process_csv
-    events:
-      - httpApi:
-        path: /csv/create
-        method: POST
+  copy:
+    handler: handler.copy
+    events: # All events associated with this function
+      - httpApi: 'POST /copy'
+    environment:
+      RUBYOPT: '-W0'
 
 # you can add CloudFormation resource templates here
 #resources:
@@ -75,19 +75,21 @@ functions:
 
 
 constructs:
-  download:
+  preprocessed:
+    type: storage
+
+  split-ocr-thumbnail:
     type: queue
     maxRetries: 2
     batchSize: 5
     worker:
-      handler: handler.download
+      handler: handler.split_ocr_thumbnail
       memorySize: 512 # optional, in MB, default is 1024
       timeout: 900 # optional, in seconds, default is 6
       ephemeralStorageSize: 10240
       environment:
         RUBYOPT: '-W0'
-        OCR_QUEUE_URL: ${construct:ocr.queueUrl}
-        THUMBNAIL_QUEUE_URL: ${construct:thumbnail.queueUrl}
+        # OCR_QUEUE_URL: ${construct:ocr.queueUrl}
   ocr:
     type: queue
     maxRetries: 2
@@ -119,9 +121,12 @@ plugins:
 custom:
   rubyLayer:
     include_functions:
+      - copy
+      - split-ocr-thumbnailWorker
       - ocrWorker
       - thumbnailWorker
     use_docker: true
     docker_file: Dockerfile
+    docker_image_name: ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest
     native_libs:
       - /opt

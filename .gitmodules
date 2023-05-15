@@ -1,3 +1,6 @@
 [submodule "serverless-ruby-layer"]
 	path = serverless-ruby-layer
 	url = git@github.com:scientist-softserv/serverless-ruby-layer.git
+[submodule "awslambda/derivative_rodeo"]
+	path = awslambda/derivative_rodeo
+	url = https://github.com/scientist-softserv/derivative_rodeo.git

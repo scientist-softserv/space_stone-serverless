@@ -1,31 +1,52 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'rubygems'
 require 'bundler/setup'
 Bundler.require(:default)
 
-def process_csv(event:, context:)
-  event_body = get_event_body(event: event, return_json: false)
-  send_results(event_body)
+require_relative './derivative_rodeo/lib/derivative_rodeo'
+
+def copy(event:, context:)
+  job = get_event_body(event: event)
+  # download files to tmp space
+  # copy tmp files to ouput_templates
+  output_uris = []
+  job.each do |input_uri, output_templates|
+    tmp_uri = download_to_tmp(input_uri: input_uri)
+    output_uris += send_to_locations(tmp_uri: tmp_uri, output_templates: output_templates)
+  end
+  send_results(output_uris)
 end
 
-def download(event:, context:)
-  download_uris = get_event_body(event: event, return_json: false)
-  # TODO deal with output adapter passing bucket/queue
-  s3_uris = DerivativeRodeo::DownloadGenerator.new(input_files: download_uris, output_adapter: "s3://#{ENV['AWS_S3_DOWNLOAD_BUCKET']}").generated_uris
-  ocr_uris = DerivativeRodeo::MoveGenerator.new(input_files: s3_uris, output_adapter: "sqs://#{ENV['OCR_QUEUE_URL']}").generated_uris
-  thumbnail_uris = DerivativeRodeo::MoveGenerator.new(input_files: s3_uris, output_adapter: "sqs://#{ENV['THUMBNAIL_QUEUE_URL']}").generated_uris
+def split_ocr_thumbnail(event:, context:)
+  # split in to pages
+  puts "split_ocr_thumbnail #{event}"
+  job = get_event_body(event: event)
+  output_uri = []
+  job.each do |input_uri, output_templates|
+    args = {
+      input_uris: [input_uri],
+      output_target_template: output_template
+    }
+    output_uris += DerivativeRodeo::Generators::PdfSplitGenerator.new(args).generated_uris
+  end
+  send_results(output_uris)
 
-  send_results({s3_uris: s3_uris, ocr_queued_count: ocr_uris.size, thumbnail_queued_count: thumbnail_uris.size})
+  # ocr each individual page
+  # thumbnail each invidiual page
 end
 
 def ocr(event:, context:)
-  event_body = get_event_body(event: event, return_json: false)
-  ocr_uris = DerivativeRodeo::HocrGenerator.new(input_ocr_uris: event_body).generated_uris
-  send_results(ocr_uris)
+  event_body = get_event_body(event: event)
+  send_results("ocr call #{event_body}")
+
+  #  ocr_uris = DerivativeRodeo::HocrGenerator.new(input_ocr_uris: event_body).generated_uris
+  #  send_results(ocr_uris)
 end
 
 def thumbnail(event:, context:)
-  send_results('thumbnail call')
+  send_results("thumbnail call #{event}")
 end
 
 def get_event_body(event:, return_json: true)
@@ -34,7 +55,7 @@ def get_event_body(event:, return_json: true)
   elsif event['isBase64Encoded']
     return_json ? JSON.parse(Base64.decode64(event['body'])) : Base64.decode64(event['body'])
   else
-    event['body']
+    return_json ? JSON.parse(event['body']) : event['body']
   end
 end
 
@@ -44,4 +65,26 @@ def send_results(results)
     headers: [{ 'Content-Type' => 'application/json' }],
     body: results
   }
+end
+
+def download_to_tmp(input_uri:)
+  # copy a single input uri down from the server
+  args = {
+    input_uris: [input_uri],
+    output_target_template: 'file:///tmp/{{dir_parts[-1..-1]}}/{{ filename }}'
+  }
+  DerivativeRodeo::Generators::CopyGenerator.new(args).generated_uris.first
+end
+
+def send_to_locations(tmp_uri:, output_templates:)
+  output_uris = []
+  # copy the locally cached file to its destinations
+  output_templates.each do |output_template|
+    args = {
+      input_uris: [tmp_uri],
+      output_target_template: output_template
+    }
+    output_uris += DerivativeRodeo::Generators::CopyGenerator.new(args).generated_uris
+  end
+  output_uris
 end
