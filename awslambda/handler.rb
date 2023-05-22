@@ -8,6 +8,10 @@ Bundler.require(:default)
 require_relative './derivative_rodeo/lib/derivative_rodeo'
 
 ##
+# This is the starting point for the derivative processing; namely take the remote URIs, retrieve
+# them and then pass each of those newly downloaded URIs forward for additional processing (as
+# defined by the `output_location_templates`).
+#
 # @param event [String] We'll convert, via {#get_event_body}, the given :event.  The results of the
 #        call to {#get_event_body} is a hash with keys that are strings and values are an array of
 #        strings.
@@ -34,9 +38,9 @@ end
 #        strings.
 # @param context [Object]
 # @return [Hash<Symbol, Object>] from {#response_body_for}
-def split_ocr_thumbnail(event:, context:)
   # split in to pages
   puts "split_ocr_thumbnail #{event}"
+def pdf(event:, context:)
   input_uris_and_template = get_event_body(event: event)
   output_uris = []
 
@@ -51,6 +55,8 @@ def split_ocr_thumbnail(event:, context:)
   # ocr each individual page
   # thumbnail each invidiual page
 end
+
+alias split_ocr_thumbnail pdf
 
 def ocr(event:, context:)
   # TODO: Get working
