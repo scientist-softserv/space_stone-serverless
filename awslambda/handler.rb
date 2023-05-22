@@ -7,6 +7,10 @@ Bundler.require(:default)
 
 require_relative './derivative_rodeo/lib/derivative_rodeo'
 
+########################################################################################################################
+# @!group Handlers
+# See README for more clarification
+
 ##
 # @param event [String] We'll convert, via {#get_event_body}, the given :event.  The results of the
 #        call to {#get_event_body} is a hash with keys that are strings and values are an array of
@@ -73,6 +77,13 @@ def thumbnail(event:, context:)
   # TODO: Get working
   response_body_for("thumbnail call #{event}")
 end
+
+# @!endgroup Handlers
+########################################################################################################################
+
+########################################################################################################################
+# @!group Helpers
+# All other methods below are non-handlers (helpers if you will)
 
 ##
 # @api private
@@ -178,3 +189,6 @@ end
 def s3_name_to_url(bucket_name:)
   "s3://#{bucket_name}.s3.#{ENV['AWS_REGION']}.amazonaws.com"
 end
+
+# @!endgroup Helpers
+########################################################################################################################
