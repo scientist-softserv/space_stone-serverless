@@ -42,11 +42,23 @@ def split_ocr_thumbnail(event:, context:)
 
   # TODO: We have PDF Splitting but we need thumbnails.
   input_uris_and_template.each do |input_uri, output_location_template|
+    # TODO: Given the output_uris are the URIs to each image of each page of each PDF, should we
+    # now begin processing those images within this handler invocation?  If not, how do we enqueue
+    # this work?
     output_uris += DerivativeRodeo::Generators::PdfSplitGenerator.new(
       input_uris: input_uri,
       output_location_template: output_location_template).generated_uris
+
+    # TODO: Should we add the yet to be created DerivativeRodeo::Generators::Thumbnail call here?
+    # My read is we can continue to use the same output_location_template as it switches on the
+    # filename which is provided by the Thumbnail generator.
   end
+
+  # TODO: Should we be returning the thumbnail URIs as well as the PDF pages uris?
   response_body_for(output_uris)
+
+  # TODO: Is the comments after the response_body_for significant?  My read is that the
+  # response_body_for should always be last
 
   # ocr each individual page
   # thumbnail each invidiual page
