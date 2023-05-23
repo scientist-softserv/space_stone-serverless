@@ -53,8 +53,8 @@ def split_ocr_thumbnail(event:, context:)
 
   s3_url = s3_name_to_url(bucket_name: ENV['S3_BUCKET_NAME'])
   output_location_templates = [
-    queue_url_to_rodeo_url(queue_url: ENV['OCR_QUEUE_URL'], s3_url: s3_url, template: "{{dir_parts[-1..-1]}}/{{ filename }}"),
-    queue_url_to_rodeo_url(queue_url: ENV['THUMBNAIL_QUEUE_URL'], s3_url: s3_url, template: "{{dir_parts[-1..-1]}}/{{ filename }}")
+    queue_url_to_rodeo_url(queue_url: ENV['OCR_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ filename }}"),
+    queue_url_to_rodeo_url(queue_url: ENV['THUMBNAIL_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ filename }}")
   ]
   output_uris += send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
   response_body_for(output_uris)
@@ -153,13 +153,19 @@ end
 #
 # Convert SQS url from Amazons format to Derivative Rodeo's format. Add template information and s3 destination
 #
+# @example
+# https://sqs.us-west-2.amazonaws.com/AID/space-stone-dev-ocr =>
+# sqs://us-west-2.amazonaws.com/AID/space-stone-dev-ocr/{{dir_parts[-1..-1]}}/{{ basename }}?template=s3://BUCKET.s3.REGION.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}
+#
 # @param queue_url [String]
+# @param s3_url_domain [String] - the s3://BUCKET.s3.REGION.amazonaws.com part of the url
+# @param template_tail [String] - the directory / filename parts of both the sqs and s3 uris.
 # @return [String]
-def queue_url_to_rodeo_url(queue_url:, s3_url: nil, template: nil)
+def queue_url_to_rodeo_url(queue_url:, s3_url_domain: nil, template_tail: nil)
   url = queue_url.gsub('https://sqs.', 'sqs://')
 
-  url += "/#{template}" if template
-  url += "?template=#{s3_url}/#{template}" if s3_url
+  url += "/#{template_tail}" if template_tail
+  url += "?template=#{s3_url_domain}/#{template_tail}" if s3_url_domain
 end
 
 ##
