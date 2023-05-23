@@ -111,6 +111,14 @@ WORKDIR ImageMagick-7.0.10-6
 RUN ./configure --prefix=/opt
 RUN make install
 
+
+###############################################################################
+# Poppler
+###############################################################################
+
+WORKDIR /root
+RUN yum install -y poppler poppler-utils
+
 ###############################################################################
 # RPM dependencies
 ###############################################################################
@@ -126,6 +134,16 @@ WORKDIR rpms
 # Download dependency RPMs
 RUN yumdownloader libjpeg-turbo.x86_64 libpng.x86_64 libtiff.x86_64 \
   libgomp.x86_64 libwebp.x86_64 jbigkit-libs.x86_64 openjpeg2.x86_64
+
+# Download poppler dependncies
+RUN yumdownloader poppler.x86_64 poppler-utils.x86_64 openjpeg-libs.x86_64 poppler-data \
+  cairo.x86_64 hwdata.x86_64 libXdamage.x86_64 libdrm.x86_64 libglvnd.x86_64 \
+  libglvnd-egl.x86_64 libglvnd-glx.x86_64 libpciaccess.x86_64 \
+  libwayland-client.x86_64 libwayland-server.x86_64 libxshmfence.x86_64 \
+  mesa-libEGL.x86_64 mesa-libGL.x86_64 mesa-libgbm.x86_64 mesa-libglapi.x86_64 \
+  lcms2.x86_64 pixman.x86_64 &&\
+  cp /usr/lib64/libGLX_mesa.so.0 /opt/lib/libGLX_system.so.0
+
 # GhostScript and dependencies
 # To reduce dependencies, we are compiling GhostScript from source instead
 # RUN yumdownloader ghostscript.x86_64 cups-libs.x86_64 fontconfig.x86_64 \
@@ -152,7 +170,9 @@ RUN cp -vR */usr/* /opt
 # The x86_64 packages extract as lib64, we need to move these files to lib
 RUN yum install -y rsync
 RUN rsync -av /opt/lib64/ /opt/lib/
-RUN rm -r /opt/lib64
+# One of the libs is a symlink. we have to break the symlink and make it a copy or pdfinfo just crashes.
+RUN rm -r /opt/lib64 && \
+  unlink /opt/lib/libGLX_system.so.0 && cp /usr/lib64/libGLX_mesa.so.0 /opt/lib/libGLX_system.so.0
 
 WORKDIR /opt/share/tessdata/configs
 RUN mkdir -p /opt/share/tessdata/configs && curl -LO https://raw.githubusercontent.com/tesseract-ocr/tessconfigs/3decf1c8252ba6dbeef0bf908f4b0aab7f18d113/configs/hocr
