@@ -89,7 +89,9 @@ constructs:
       ephemeralStorageSize: 10240
       environment:
         RUBYOPT: '-W0'
-        # OCR_QUEUE_URL: ${construct:ocr.queueUrl}
+        OCR_QUEUE_URL: ${construct:ocr.queueUrl}
+        THUMBNAIL_QUEUE_URL: ${construct:thumbnail.queueUrl}
+        S3_BUCKET_NAME: ${construct:preprocessed.bucketName}
   ocr:
     type: queue
     maxRetries: 2

@@ -18,7 +18,7 @@ def copy(event:, context:)
   output_uris = []
   input_uris_and_templates.each do |input_uri, output_location_templates|
     tmp_uri = download_to_tmp(input_uri: input_uri)
-    output_uris += send_to_locations(tmp_uri: tmp_uri, output_location_templates: output_location_templates)
+    output_uris += send_to_locations(tmp_uris: [tmp_uri], output_location_templates: output_location_templates)
   end
   response_body_for(output_uris)
 end
@@ -37,24 +37,27 @@ end
 def split_ocr_thumbnail(event:, context:)
   # {"s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/20121820/20121820.ARCHIVAL.pdf":["s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}"]}
   # split in to pages
-  input_uris_and_template = get_event_body(event: event)
+  jobs = get_event_body(event: event)
   output_uris = []
-
-  input_uris_and_template.each do |job|
+  jobs.each do |job|
     job.each do |input_uri, output_templates|
       output_templates.each do |output_template|
         args = {
           input_uris: [input_uri],
-          output_target_template: output_template
+          output_location_template: output_template
         }
         output_uris += DerivativeRodeo::Generators::PdfSplitGenerator.new(args).generated_uris
       end
     end
   end
-  response_body_for(output_uris)
 
-  # ocr each individual page
-  # thumbnail each invidiual page
+  s3_url = s3_name_to_url(bucket_name: ENV['S3_BUCKET_NAME'])
+  output_location_templates = [
+    queue_url_to_rodeo_url(queue_url: ENV['OCR_QUEUE_URL'], s3_url: s3_url, template: "{{dir_parts[-1..-1]}}/{{ filename }}"),
+    queue_url_to_rodeo_url(queue_url: ENV['THUMBNAIL_QUEUE_URL'], s3_url: s3_url, template: "{{dir_parts[-1..-1]}}/{{ filename }}")
+  ]
+  output_uris += send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
+  response_body_for(output_uris)
 end
 
 def ocr(event:, context:)
@@ -101,6 +104,8 @@ end
 #
 # @return [Hash<Symbol,Object>]
 def response_body_for(results, status_code: 200, headers: [{ 'Content-Type' => 'application/json' }])
+  # Get a log message for the output, especially useful if dealing with SQS queues
+  puts results.inspect
   {
     statusCode: status_code,
     headers: headers,
@@ -131,14 +136,39 @@ end
 # Copy the the locally cached file (at the given :tmp_uri location) to its destinations based on the
 # given :output_location_templates.  Return the "generated" locations.
 #
-# @param tmp_uri [Object]
+# @param tmp_uris [Array<Object>]
 # @param output_location_templates [Array<String>]
 # @return [Array<String>]
-def send_to_locations(tmp_uri:, output_location_templates:)
+def send_to_locations(tmp_uris:, output_location_templates:)
   output_location_templates.flat_map do |output_template|
-    output_uris += DerivativeRodeo::Generators::CopyGenerator.new(
-      input_uris: [tmp_uri],
+    DerivativeRodeo::Generators::CopyGenerator.new(
+      input_uris: tmp_uris,
       output_location_template: output_template
     ).generated_uris
   end
+end
+
+##
+# @api private
+#
+# Convert SQS url from Amazons format to Derivative Rodeo's format. Add template information and s3 destination
+#
+# @param queue_url [String]
+# @return [String]
+def queue_url_to_rodeo_url(queue_url:, s3_url: nil, template: nil)
+  url = queue_url.gsub('https://sqs.', 'sqs://')
+
+  url += "/#{template}" if template
+  url += "?template=#{s3_url}/#{template}" if s3_url
+end
+
+##
+# @api private
+#
+# Get the S3 url for the given bucket name
+#
+# @param bucket_name [String]
+# @return [String]
+def s3_name_to_url(bucket_name:)
+  "s3://#{bucket_name}.s3.#{ENV['AWS_REGION']}.amazonaws.com"
 end
