@@ -128,5 +128,7 @@ custom:
     use_docker: true
     docker_file: Dockerfile
     docker_image_name: ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest
+    native_bins:
+      - /opt/bin/
     native_libs:
-      - /opt
+      - /opt/lib/

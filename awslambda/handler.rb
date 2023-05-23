@@ -20,17 +20,22 @@ def copy(event:, context:)
 end
 
 def split_ocr_thumbnail(event:, context:)
+  # {"s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/20121820/20121820.ARCHIVAL.pdf":["s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}"]}
   # split in to pages
-  puts "split_ocr_thumbnail #{event}"
-  job = get_event_body(event: event)
-  output_uri = []
-  job.each do |input_uri, output_templates|
-    args = {
-      input_uris: [input_uri],
-      output_target_template: output_template
-    }
-    output_uris += DerivativeRodeo::Generators::PdfSplitGenerator.new(args).generated_uris
+  jobs = get_event_body(event: event)
+  output_uris = []
+  jobs.each do |job|
+    job.each do |input_uri, output_templates|
+      output_templates.each do |output_template|
+        args = {
+          input_uris: [input_uri],
+          output_target_template: output_template
+        }
+        output_uris += DerivativeRodeo::Generators::PdfSplitGenerator.new(args).generated_uris
+      end
+    end
   end
+  puts "==== #{output_uris}"
   send_results(output_uris)
 
   # ocr each individual page
