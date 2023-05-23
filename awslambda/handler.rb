@@ -53,20 +53,28 @@ def split_ocr_thumbnail(event:, context:)
 
   s3_url = s3_name_to_url(bucket_name: ENV['S3_BUCKET_NAME'])
   output_location_templates = [
-    queue_url_to_rodeo_url(queue_url: ENV['OCR_QUEUE_URL'], s3_url: s3_url, template: "{{dir_parts[-1..-1]}}/{{ filename }}"),
-    queue_url_to_rodeo_url(queue_url: ENV['THUMBNAIL_QUEUE_URL'], s3_url: s3_url, template: "{{dir_parts[-1..-1]}}/{{ filename }}")
+    queue_url_to_rodeo_url(queue_url: ENV['OCR_QUEUE_URL'], s3_url: s3_url, template: "{{dir_parts[-1..-1]}}/{{ basename }}.hocr"),
+    queue_url_to_rodeo_url(queue_url: ENV['THUMBNAIL_QUEUE_URL'], s3_url: s3_url, template: "{{dir_parts[-1..-1]}}/{{ basename }}.jpeg")
   ]
   output_uris += send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
   response_body_for(output_uris)
 end
 
 def ocr(event:, context:)
-  # TODO: Get working
-  event_body = get_event_body(event: event)
-  response_body_for("ocr call #{event_body}")
-
-  #  ocr_uris = DerivativeRodeo::HocrGenerator.new(input_ocr_uris: event_body).generated_uris
-  #  send_results(ocr_uris)
+  jobs = get_event_body(event: event)
+  output_uris = []
+  jobs.each do |job|
+    job.each do |input_uri, output_templates|
+      output_templates.each do |output_template|
+        args = {
+          input_uris: [input_uri],
+          output_location_template: output_template
+        }
+        output_uris += DerivativeRodeo::Generators::HocrGenerator.new(args).generated_uris
+      end
+    end
+  end
+  response_body_for(output_uris)
 end
 
 def thumbnail(event:, context:)
