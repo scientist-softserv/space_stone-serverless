@@ -170,6 +170,7 @@ RUN cp -vR */usr/* /opt
 # The x86_64 packages extract as lib64, we need to move these files to lib
 RUN yum install -y rsync
 RUN rsync -av /opt/lib64/ /opt/lib/
+# One of the libs is a symlink. we have to break the symlink and make it a copy or pdfinfo just crashes.
 RUN rm -r /opt/lib64 && \
   unlink /opt/lib/libGLX_system.so.0 && cp /usr/lib64/libGLX_mesa.so.0 /opt/lib/libGLX_system.so.0
 
