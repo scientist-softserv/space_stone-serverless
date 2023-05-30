@@ -2,7 +2,7 @@
 
 Welcome to the Space Rodeo!
 
-The goal of Space Stone is to allow derivative preprocessing to take place in a serverless framework. 
+The goal of Space Stone is to allow derivative preprocessing to take place in a serverless framework.
 
 At the moment, only an AWS Lambda library is set up, but future versions may contain other distributions. This code is built with the [Serverless Framework](https://www.serverless.com/framework/docs), a powerful abstraction and CLI for dealing with various cloud function as code providers.
 
@@ -36,6 +36,11 @@ npm install
 AWS credentials are pulled from AWS_PROFILE. Make sure your ~/.aws/config and ~/.aws/credentials are set accordingly. See [AWS CLI docs](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/configure/index.html)
  for more info.
 
+### Updating Dependencies
+
+```bash
+git submodule update --remote
+```
 ## Deploy
 
 Make sure your AWS profile is set correctly
