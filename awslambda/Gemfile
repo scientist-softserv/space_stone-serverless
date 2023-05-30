@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 git_source(:github) { |repo| "git@github.com:#{repo}.git" }
 
 gem 'byebug', group: [:development, :test]
-gem 'derivative_rodeo', path: './derivative_rodeo'
+gem 'derivative-rodeo', path: './derivative_rodeo'
 gem 'dotenv'
 gem 'httparty'
 gem 'nokogiri'
