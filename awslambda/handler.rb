@@ -18,12 +18,15 @@ require_relative './derivative_rodeo/lib/derivative_rodeo'
 # @param context [Object]
 # @return [Hash<Symbol, Object>] from {#response_body_for}
 def copy(event:, context:)
-  input_uris_and_templates = get_event_body(event: event)
+  jobs = get_event_body(event: event)
   output_uris = []
-  input_uris_and_templates.each do |input_uri, output_location_templates|
-    tmp_uri = download_to_tmp(input_uri: input_uri)
-    output_uris += send_to_locations(tmp_uris: [tmp_uri], output_location_templates: output_location_templates)
+  jobs.each do |job|
+    job.each do |input_uri, output_location_templates|
+      tmp_uri = download_to_tmp(input_uri: input_uri)
+      output_uris += send_to_locations(tmp_uris: [tmp_uri], output_location_templates: output_location_templates)
+    end
   end
+
   response_body_for(output_uris)
 end
 
