@@ -17,6 +17,7 @@ require_relative './derivative_rodeo/lib/derivative_rodeo'
 #        strings.
 # @param context [Object]
 # @return [Hash<Symbol, Object>] from {#response_body_for}
+# @todo TODO: Refactor to maybe use #handle method?
 def copy(event:, context:)
   jobs = get_event_body(event: event)
   output_uris = []
@@ -41,52 +42,45 @@ end
 #        strings.
 # @param context [Object]
 # @return [Hash<Symbol, Object>] from {#response_body_for}
-def split_ocr_thumbnail(event:, context:)
+def split_ocr_thumbnail(event:, context:, env: ENV)
   # {"s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/20121820/20121820.ARCHIVAL.pdf":["s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}"]}
   # split in to pages
-  jobs = get_event_body(event: event)
-  output_uris = []
-  jobs.each do |job|
-    job.each do |input_uri, output_templates|
-      output_templates.each do |output_template|
-        args = {
-          input_uris: [input_uri],
-          output_location_template: output_template
-        }
-        output_uris += DerivativeRodeo::Generators::PdfSplitGenerator.new(args).generated_uris
-      end
-    end
+  handle(generator: DerivativeRodeo::Generators::PdfSplitGenerator, event: event, context: context) do |output_uris|
+    s3_url = s3_name_to_url(bucket_name: env['S3_BUCKET_NAME'])
+    output_location_templates = [
+      queue_url_to_rodeo_url(queue_url: env['OCR_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::HocrGenerator.output_extension}"),
+      queue_url_to_rodeo_url(queue_url: env['THUMBNAIL_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::ThumbnailGenerator.output_extension}")
+    ]
+    send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
   end
-
-  s3_url = s3_name_to_url(bucket_name: ENV['S3_BUCKET_NAME'])
-  output_location_templates = [
-    queue_url_to_rodeo_url(queue_url: ENV['OCR_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.hocr"),
-    queue_url_to_rodeo_url(queue_url: ENV['THUMBNAIL_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.jpeg")
-  ]
-  output_uris += send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
-  response_body_for(output_uris)
 end
 
 def ocr(event:, context:)
-  jobs = get_event_body(event: event)
-  output_uris = []
-  jobs.each do |job|
-    job.each do |input_uri, output_templates|
-      output_templates.each do |output_template|
-        args = {
-          input_uris: [input_uri],
-          output_location_template: output_template
-        }
-        output_uris += DerivativeRodeo::Generators::HocrGenerator.new(args).generated_uris
-      end
-    end
+  handle(generator: DerivativeRodeo::Generators::HocrGenerator, event: event, context: context) do |output_uris|
+    s3_url = s3_name_to_url(bucket_name: ENV['S3_BUCKET_NAME'])
+    output_location_templates = [
+      queue_url_to_rodeo_url(queue_url: ENV['WORD_COORDINATES_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::WordCoordinatesGenerator.output_extension}"),
+      queue_url_to_rodeo_url(queue_url: ENV['PLAIN_TEXT_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::PlainTextGenerator.output_extension}"),
+      queue_url_to_rodeo_url(queue_url: ENV['ALTO_XML_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::AltoGenerator.output_extension}"),
+    ]
+    send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
   end
-  response_body_for(output_uris)
 end
 
 def thumbnail(event:, context:)
-  # TODO: Get working
-  response_body_for("thumbnail call #{event}")
+  handle(generator: DerivativeRodeo::Generators::ThumbnailGenerator, event: event, context: context)
+end
+
+def word_coordinates(event:, context:)
+  handle(generator: DerivativeRodeo::Generators::WordCoordinatesGenerator, event: event, context: context)
+end
+
+def plain_text(event:, context:)
+  handle(generator: DerivativeRodeo::Generators::PlainTextGenerator, event: event, context: context)
+end
+
+def alto(event:, context:)
+  handle(generator: DerivativeRodeo::Generators::AltoGenerator, event: event, context: context)
 end
 
 # @!endgroup Handlers
@@ -95,6 +89,24 @@ end
 ########################################################################################################################
 # @!group Helpers
 # All other methods below are non-handlers (helpers if you will)
+
+def handle(generator:, event:, context:)
+  jobs = get_event_body(event: event)
+  output_uris = []
+  jobs.each do |job|
+    job.each do |input_uri, output_templates|
+      output_templates.each do |output_template|
+        args = {
+          input_uris: [input_uri],
+          output_location_template: output_template
+        }
+        output_uris += generator.new(args).generated_uris
+      end
+    end
+  end
+  output_uris += yield output_uris if block_given?
+  response_body_for(output_uris)
+end
 
 ##
 # @api private
