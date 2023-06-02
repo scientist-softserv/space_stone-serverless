@@ -79,6 +79,7 @@ describe 'handler' do
                        'PLAIN_TEXT_QUEUE_URL' => 'sqs://text',
                        'ALTO_XML_QUEUE_URL' => 'sqs://alto'
                      })
+
       expect(response[:body]).to eq [
         "s3://s3.com/123/ocr_color.tiff",
         "sqs://word_coords/123/ocr_color.coordinates.json?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.coordinates.json",
