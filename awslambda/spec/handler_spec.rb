@@ -81,10 +81,10 @@ describe "handler" do
       expect(response[:body]).to eq [
         "s3://s3.com/pages/minimal-2-page-1.tiff",
         "s3://s3.com/pages/minimal-2-page-2.tiff",
-        "sqs://ocr/pages/minimal-2-page-1.hocr?template=s3://bucket.s3..amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
-        "sqs://ocr/pages/minimal-2-page-2.hocr?template=s3://bucket.s3..amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
-        "sqs://thumbnail/pages/minimal-2-page-1.thumbnail.jpeg?template=s3://bucket.s3..amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg",
-        "sqs://thumbnail/pages/minimal-2-page-2.thumbnail.jpeg?template=s3://bucket.s3..amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg"
+        "sqs://ocr/pages/minimal-2-page-1.hocr?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
+        "sqs://ocr/pages/minimal-2-page-2.hocr?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
+        "sqs://thumbnail/pages/minimal-2-page-1.thumbnail.jpeg?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg",
+        "sqs://thumbnail/pages/minimal-2-page-2.thumbnail.jpeg?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg"
       ]
     end
   end

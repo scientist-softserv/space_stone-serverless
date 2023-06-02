@@ -100,7 +100,7 @@ def handle(generator:, event:, context:)
           input_uris: [input_uri],
           output_location_template: output_template
         }
-        output_uris += generator.new(args).generated_uris
+        output_uris += generator.new(**args).generated_uris
       end
     end
   end
@@ -210,7 +210,7 @@ end
 # @param bucket_name [String]
 # @return [String]
 def s3_name_to_url(bucket_name:)
-  "s3://#{bucket_name}.s3.#{ENV['AWS_REGION']}.amazonaws.com"
+  DerivativeRodeo::StorageLocations::S3Location.adapter_prefix(bucket_name: bucket_name)
 end
 
 # @!endgroup Helpers
