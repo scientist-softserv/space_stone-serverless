@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require_relative '../handler'
 require 'byebug'
 
-require "spec_support/aws_s3_faux_bucket"
-require "spec_support/aws_sqs_faux_client"
+require 'spec_support/aws_s3_faux_bucket'
+require 'spec_support/aws_sqs_faux_client'
 
 module Fixtures
   ##
@@ -28,7 +30,7 @@ module Fixtures
   end
 end
 
-describe "handler" do
+describe 'handler' do
   before do
     DerivativeRodeo::StorageLocations::S3Location.use_actual_s3_bucket = false
     DerivativeRodeo::StorageLocations::SqsLocation.use_real_sqs = false
@@ -45,15 +47,15 @@ describe "handler" do
 
   describe '#copy' do
     it 'processes each key/value pair, copying the key to each of the given values' do
-      s3_host_name = "space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com"
-      event_json = Fixtures.event_json_for({ Fixtures.file_location_for("minimal-2-page.pdf") => [
-                                                "s3://#{s3_host_name}/{{dir_parts[-1..-1]}}/{{ filename }}",
-                                                "sqs://us-west-2.amazonaws.com/559021623471/space-stone-dev-split-ocr-thumbnail/{{dir_parts[-1..-1]}}/{{ filename }}?template=s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}"]
-                                             },{
-                                               Fixtures.file_location_for("minimal-2-page.txt") => [
-                                                 "s3://#{s3_host_name}/{{dir_parts[-1..-1]}}/minimal-2-page.pdf.txt"
-                                               ]
-                                             })
+      s3_host_name = 'space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com'
+      event_json = Fixtures.event_json_for({ Fixtures.file_location_for('minimal-2-page.pdf') => [
+                                             "s3://#{s3_host_name}/{{dir_parts[-1..-1]}}/{{ filename }}",
+                                             'sqs://us-west-2.amazonaws.com/559021623471/space-stone-dev-split-ocr-thumbnail/{{dir_parts[-1..-1]}}/{{ filename }}?template=s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}'
+                                           ] }, {
+                                             Fixtures.file_location_for('minimal-2-page.txt') => [
+                                               "s3://#{s3_host_name}/{{dir_parts[-1..-1]}}/minimal-2-page.pdf.txt"
+                                             ]
+                                           })
       response = copy(event: event_json, context: {})
 
       # TODO: as of <2023-05-31 Wed> we cannot peak into the configured faux bucket; because that
@@ -61,12 +63,31 @@ describe "handler" do
       # expose directly).
       expect(response[:body].size).to eq(3)
       expect(response[:body]).to match_array(["s3://#{s3_host_name}/files/minimal-2-page.pdf",
-                                              "sqs://us-west-2.amazonaws.com/559021623471/space-stone-dev-split-ocr-thumbnail/files/minimal-2-page.pdf?template=s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}",
+                                              'sqs://us-west-2.amazonaws.com/559021623471/space-stone-dev-split-ocr-thumbnail/files/minimal-2-page.pdf?template=s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}',
                                               "s3://#{s3_host_name}/files/minimal-2-page.pdf.txt"])
     end
   end
 
   describe '#ocr' do
+    it 'will enqueue three jobs: word coordinates, plain text and alto xml' do
+      event_json = Fixtures.event_json_for({ Fixtures.file_location_for('123/ocr_color.tiff') => [
+                                             's3://s3.com/{{dir_parts[-1..-1]}}/{{ filename }}'
+                                           ] })
+      response = ocr(event: event_json, context: {}, env: {
+                       'S3_BUCKET_NAME' => 'bucket',
+                       'WORD_COORDINATES_QUEUE_URL' => 'sqs://word_coords',
+                       'PLAIN_TEXT_QUEUE_URL' => 'sqs://text',
+                       'ALTO_XML_QUEUE_URL' => 'sqs://alto'
+                     })
+
+      expect(response[:body]).to eq [
+        "s3://s3.com/123/ocr_color.tiff",
+        "sqs://word_coords/123/ocr_color.coordinates.json?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.coordinates.json",
+        "sqs://text/123/ocr_color.plain_text.txt?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.plain_text.txt",
+        "sqs://alto/123/ocr_color.alto.xml?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.alto.xml"
+      ]
+    end
+
     xit 'when success' do
       response = ocr(event: {}, context: {})
       expect(response[:statusCode]).to eq 200

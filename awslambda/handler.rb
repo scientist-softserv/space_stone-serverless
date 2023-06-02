@@ -55,13 +55,13 @@ def split_ocr_thumbnail(event:, context:, env: ENV)
   end
 end
 
-def ocr(event:, context:)
+def ocr(event:, context:, env: ENV)
   handle(generator: DerivativeRodeo::Generators::HocrGenerator, event: event, context: context) do |output_uris|
-    s3_url = s3_name_to_url(bucket_name: ENV['S3_BUCKET_NAME'])
+    s3_url = s3_name_to_url(bucket_name: env['S3_BUCKET_NAME'])
     output_location_templates = [
-      queue_url_to_rodeo_url(queue_url: ENV['WORD_COORDINATES_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::WordCoordinatesGenerator.output_extension}"),
-      queue_url_to_rodeo_url(queue_url: ENV['PLAIN_TEXT_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::PlainTextGenerator.output_extension}"),
-      queue_url_to_rodeo_url(queue_url: ENV['ALTO_XML_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::AltoGenerator.output_extension}"),
+      queue_url_to_rodeo_url(queue_url: env['WORD_COORDINATES_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::WordCoordinatesGenerator.output_extension}"),
+      queue_url_to_rodeo_url(queue_url: env['PLAIN_TEXT_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::PlainTextGenerator.output_extension}"),
+      queue_url_to_rodeo_url(queue_url: env['ALTO_XML_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::AltoGenerator.output_extension}"),
     ]
     send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
   end
