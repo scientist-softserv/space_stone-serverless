@@ -2,7 +2,6 @@
 
 require_relative '../handler'
 require 'byebug'
-require 'pry-byebug'
 
 require 'spec_support/aws_s3_faux_bucket'
 require 'spec_support/aws_sqs_faux_client'
@@ -76,6 +75,7 @@ describe 'handler' do
                                            ] })
       response = split_ocr_thumbnail(event: event_json, context: {},
                                      env: { 'S3_BUCKET_NAME' => 'bucket', 'OCR_QUEUE_URL' => 'sqs://ocr', 'THUMBNAIL_QUEUE_URL' => 'sqs://thumbnail' })
+      # TODO: This spec will break once config for the region is updated in #s3_name_to_url of handler.rb to address the double dots.
       expect(response[:body]).to eq [
         's3://s3.com/pages/minimal-2-page-1.tiff',
         's3://s3.com/pages/minimal-2-page-2.tiff',
@@ -98,7 +98,9 @@ describe 'handler' do
                        'PLAIN_TEXT_QUEUE_URL' => 'sqs://text',
                        'ALTO_XML_QUEUE_URL' => 'sqs://alto'
                      })
+      # TODO: This spec will break once config for the region is updated in #s3_name_to_url of handler.rb to address the double dots.
       expect(response[:body]).to eq [
+        "s3://s3.com/123/ocr_color.tiff",
         "sqs://word_coords/123/ocr_color.coordinates.json?template=s3://bucket.s3..amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.coordinates.json",
         "sqs://text/123/ocr_color.plain_text.txt?template=s3://bucket.s3..amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.plain_text.txt",
         "sqs://alto/123/ocr_color.alto.xml?template=s3://bucket.s3..amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.alto.xml"
