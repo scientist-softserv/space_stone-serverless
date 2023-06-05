@@ -31,6 +31,9 @@ npm install
 popd
 pushd awslambda
 npm install
+
+# prime the docker image to make building faster
+docker pull ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest
 ```
 
 AWS credentials are pulled from AWS_PROFILE. Make sure your ~/.aws/config and ~/.aws/credentials are set accordingly. See [AWS CLI docs](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/configure/index.html)
@@ -41,6 +44,14 @@ AWS credentials are pulled from AWS_PROFILE. Make sure your ~/.aws/config and ~/
 ```bash
 git submodule update --remote
 ```
+
+### When you make changes to the Dockerfile
+The deploy step is likely to be slow after changes to the Dockerfile as it rebuilds the docker image. To make sure others do not need to replicate the docker build, please push the built image afterward:
+
+```
+docker push ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest
+```
+
 ## Deploy
 
 Make sure your AWS profile is set correctly
