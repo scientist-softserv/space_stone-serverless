@@ -79,5 +79,5 @@ if ENV.fetch('LOCAL', nil)
   event = %x{sls generate-event --type aws:apiGateway --body '#{JSON.generate(workload[0])}'}
   puts %x{sls invoke local --function copy --data '#{event}'}
 else
-  HTTParty.post(url, body: JSON.generate(workload[0]), headers: { 'Content-Type' => 'application/json' })
+  HTTParty.post(url, body: JSON.generate([workload[0]]), headers: { 'Content-Type' => 'application/json' })
 end
