@@ -118,13 +118,15 @@ end
 #
 # @return [String, Hash] the return value depends on whether we're returning parsed JSON or the raw document
 def get_event_body(event:, parse_body_as_json: true)
-  if event['Records']
-    event['Records'].map { |r| JSON.parse(r['body']) }.flatten
-  elsif event['isBase64Encoded']
-    parse_body_as_json ? JSON.parse(Base64.decode64(event['body'])) : Base64.decode64(event['body'])
-  else
-    parse_body_as_json ? JSON.parse(event['body']) : event['body']
-  end
+  events = if event['Records']
+             event['Records'].map { |r| JSON.parse(r['body']) }.flatten
+           elsif event['isBase64Encoded']
+             parse_body_as_json ? JSON.parse(Base64.decode64(event['body'])) : Base64.decode64(event['body'])
+           else
+             parse_body_as_json ? JSON.parse(event['body']) : event['body']
+           end
+  puts "Events: #{events}"
+  events
 end
 
 ##
