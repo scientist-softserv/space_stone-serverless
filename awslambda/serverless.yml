@@ -103,6 +103,10 @@ constructs:
       ephemeralStorageSize: 2560
       environment:
         RUBYOPT: '-W0'
+        S3_BUCKET_NAME: ${construct:preprocessed.bucketName}
+        WORD_COORDINATES_QUEUE_URL: ${construct:word-coordinates.queueUrl}
+        PLAIN_TEXT_QUEUE_URL: ${construct:plain-text.queueUrl}
+        ALTO_XML_QUEUE_URL: ${construct:alto-xml.queueUrl}
   thumbnail:
     type: queue
     maxRetries: 2
@@ -114,7 +118,39 @@ constructs:
       ephemeralStorageSize: 2560
       environment:
         RUBYOPT: '-W0'
-        OCR_QUEUE_URL: ${construct:ocr.queueUrl}
+  word-coordinates:
+    type: queue
+    maxRetries: 2
+    batchSize: 1
+    worker:
+      handler: handler.word_coordinates
+      memorySize: 4096 # optional, in MB, default is 1024
+      timeout: 900 # optional, in seconds, default is 6
+      ephemeralStorageSize: 2560
+      environment:
+        RUBYOPT: '-W0'
+  plain-text:
+    type: queue
+    maxRetries: 2
+    batchSize: 1
+    worker:
+      handler: handler.plain_text
+      memorySize: 4096 # optional, in MB, default is 1024
+      timeout: 900 # optional, in seconds, default is 6
+      ephemeralStorageSize: 2560
+      environment:
+        RUBYOPT: '-W0'
+  alto-xml:
+    type: queue
+    maxRetries: 2
+    batchSize: 1
+    worker:
+      handler: handler.alto_xml
+      memorySize: 4096 # optional, in MB, default is 1024
+      timeout: 900 # optional, in seconds, default is 6
+      ephemeralStorageSize: 2560
+      environment:
+        RUBYOPT: '-W0'
 
 plugins:
   - serverless-lift
@@ -127,6 +163,9 @@ custom:
       - split-ocr-thumbnailWorker
       - ocrWorker
       - thumbnailWorker
+      - word-coordinatesWorker
+      - plain-textWorker
+      - alto-xmlWorker
     use_docker: true
     docker_file: Dockerfile
     docker_image_name: ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest

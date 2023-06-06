@@ -79,7 +79,7 @@ def plain_text(event:, context:)
   handle(generator: DerivativeRodeo::Generators::PlainTextGenerator, event: event, context: context)
 end
 
-def alto(event:, context:)
+def alto_xml(event:, context:)
   handle(generator: DerivativeRodeo::Generators::AltoGenerator, event: event, context: context)
 end
 
