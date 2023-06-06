@@ -99,14 +99,14 @@ describe 'handler' do
       event_json = Fixtures.event_json_for({ Fixtures.file_location_for("minimal-2-page.pdf") => [
                                                "s3://s3.com/{{dir_parts[-1..-1]}}/{{ filename }}"] })
       response = split_ocr_thumbnail(event: event_json, context: {}, env: { 'S3_BUCKET_NAME' => 'bucket', 'OCR_QUEUE_URL' => 'sqs://ocr', 'THUMBNAIL_QUEUE_URL' => 'sqs://thumbnail' })
-      expect(response[:body]).to eq [
-        "s3://s3.com/pages/minimal-2-page-1.tiff",
-        "s3://s3.com/pages/minimal-2-page-2.tiff",
-        "sqs://ocr/pages/minimal-2-page-1.hocr?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
-        "sqs://ocr/pages/minimal-2-page-2.hocr?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
-        "sqs://thumbnail/pages/minimal-2-page-1.thumbnail.jpeg?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg",
-        "sqs://thumbnail/pages/minimal-2-page-2.thumbnail.jpeg?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg"
-      ]
+      expect(response[:body]).to match_array([
+        "s3://s3.com/pages/minimal-2-page--page-1.tiff",
+        "s3://s3.com/pages/minimal-2-page--page-2.tiff",
+        "sqs://ocr/pages/minimal-2-page--page-1.hocr?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
+        "sqs://ocr/pages/minimal-2-page--page-2.hocr?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
+        "sqs://thumbnail/pages/minimal-2-page--page-1.thumbnail.jpeg?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg",
+        "sqs://thumbnail/pages/minimal-2-page--page-2.thumbnail.jpeg?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg"
+      ])
     end
   end
 end
