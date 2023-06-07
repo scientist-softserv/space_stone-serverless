@@ -49,8 +49,8 @@ def split_ocr_thumbnail(event:, context:, env: ENV)
   handle(generator: DerivativeRodeo::Generators::PdfSplitGenerator, event: event, context: context) do |output_uris|
     s3_url = s3_name_to_url(bucket_name: env['S3_BUCKET_NAME'])
     output_location_templates = [
-      queue_url_to_rodeo_url(queue_url: env['OCR_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::HocrGenerator.output_extension}"),
-      queue_url_to_rodeo_url(queue_url: env['THUMBNAIL_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::ThumbnailGenerator.output_extension}")
+      queue_url_to_rodeo_url(queue_url: env['OCR_QUEUE_URL'], s3_url_domain: s3_url),
+      queue_url_to_rodeo_url(queue_url: env['THUMBNAIL_QUEUE_URL'], s3_url_domain: s3_url)
     ]
     send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
   end
@@ -60,9 +60,9 @@ def ocr(event:, context:, env: ENV)
   handle(generator: DerivativeRodeo::Generators::HocrGenerator, event: event, context: context) do |output_uris|
     s3_url = s3_name_to_url(bucket_name: env['S3_BUCKET_NAME'])
     output_location_templates = [
-      queue_url_to_rodeo_url(queue_url: env['WORD_COORDINATES_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::WordCoordinatesGenerator.output_extension}"),
-      queue_url_to_rodeo_url(queue_url: env['PLAIN_TEXT_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::PlainTextGenerator.output_extension}"),
-      queue_url_to_rodeo_url(queue_url: env['ALTO_XML_QUEUE_URL'], s3_url_domain: s3_url, template_tail: "{{dir_parts[-1..-1]}}/{{ basename }}.#{DerivativeRodeo::Generators::AltoGenerator.output_extension}"),
+      queue_url_to_rodeo_url(queue_url: env['WORD_COORDINATES_QUEUE_URL'], s3_url_domain: s3_url),
+      queue_url_to_rodeo_url(queue_url: env['PLAIN_TEXT_QUEUE_URL'], s3_url_domain: s3_url),
+      queue_url_to_rodeo_url(queue_url: env['ALTO_XML_QUEUE_URL'], s3_url_domain: s3_url)
     ]
     send_to_locations(tmp_uris: output_uris, output_location_templates: output_location_templates)
   end
@@ -198,11 +198,11 @@ end
 # @param s3_url_domain [String] - the s3://BUCKET.s3.REGION.amazonaws.com part of the url
 # @param template_tail [String] - the directory / filename parts of both the sqs and s3 uris.
 # @return [String]
-def queue_url_to_rodeo_url(queue_url:, s3_url_domain: nil, template_tail: nil, source_path: "/{{dir_parts[-1..-1]}}/{{ filename }}")
+def queue_url_to_rodeo_url(queue_url:, s3_url_domain: nil, template_tail: "/{{dir_parts[-1..-1]}}/{{ filename }}")
   url = queue_url.gsub('https://sqs.', 'sqs://')
 
-  url = File.join(url, source_path) if source_path
-  url += "?template=#{s3_url_domain}/#{template_tail}" if s3_url_domain
+  url = File.join(url, template_tail) if template_tail
+  url += "?template=#{File.join(s3_url_domain, template_tail)}" if s3_url_domain
 end
 
 ##
