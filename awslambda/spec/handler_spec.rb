@@ -82,9 +82,9 @@ describe 'handler' do
 
       expect(response[:body]).to eq [
         "s3://s3.com/123/ocr_color.tiff",
-        "sqs://word_coords/123/ocr_color.coordinates.json?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.coordinates.json",
-        "sqs://text/123/ocr_color.plain_text.txt?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.plain_text.txt",
-        "sqs://alto/123/ocr_color.alto.xml?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.alto.xml"
+        "sqs://word_coords/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.coordinates.json",
+        "sqs://text/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.plain_text.txt",
+        "sqs://alto/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.alto.xml"
       ]
     end
 
@@ -99,13 +99,14 @@ describe 'handler' do
       event_json = Fixtures.event_json_for({ Fixtures.file_location_for("minimal-2-page.pdf") => [
                                                "s3://s3.com/{{dir_parts[-1..-1]}}/{{ filename }}"] })
       response = split_ocr_thumbnail(event: event_json, context: {}, env: { 'S3_BUCKET_NAME' => 'bucket', 'OCR_QUEUE_URL' => 'sqs://ocr', 'THUMBNAIL_QUEUE_URL' => 'sqs://thumbnail' })
+      expect(response[:body].size).to eq(6)
       expect(response[:body]).to match_array([
-        "s3://s3.com/pages/minimal-2-page--page-1.tiff",
-        "s3://s3.com/pages/minimal-2-page--page-2.tiff",
-        "sqs://ocr/pages/minimal-2-page--page-1.hocr?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
-        "sqs://ocr/pages/minimal-2-page--page-2.hocr?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
-        "sqs://thumbnail/pages/minimal-2-page--page-1.thumbnail.jpeg?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg",
-        "sqs://thumbnail/pages/minimal-2-page--page-2.thumbnail.jpeg?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg"
+        "s3://s3.com/files/minimal-2-page--page-1.tiff",
+        "s3://s3.com/files/minimal-2-page--page-2.tiff",
+        "sqs://ocr/files/minimal-2-page--page-1.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
+        "sqs://ocr/files/minimal-2-page--page-2.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.hocr",
+        "sqs://thumbnail/files/minimal-2-page--page-1.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg",
+        "sqs://thumbnail/files/minimal-2-page--page-2.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}.thumbnail.jpeg"
       ])
     end
   end

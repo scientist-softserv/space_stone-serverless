@@ -11,6 +11,7 @@ require_relative './derivative_rodeo/lib/derivative_rodeo'
 # @!group Handlers
 # See README for more clarification
 
+
 ##
 # @param event [String] We'll convert, via {#get_event_body}, the given :event.  The results of the
 #        call to {#get_event_body} is a hash with keys that are strings and values are an array of
@@ -197,10 +198,10 @@ end
 # @param s3_url_domain [String] - the s3://BUCKET.s3.REGION.amazonaws.com part of the url
 # @param template_tail [String] - the directory / filename parts of both the sqs and s3 uris.
 # @return [String]
-def queue_url_to_rodeo_url(queue_url:, s3_url_domain: nil, template_tail: nil)
+def queue_url_to_rodeo_url(queue_url:, s3_url_domain: nil, template_tail: nil, source_path: "/{{dir_parts[-1..-1]}}/{{ filename }}")
   url = queue_url.gsub('https://sqs.', 'sqs://')
 
-  url += "/#{template_tail}" if template_tail
+  url = File.join(url, source_path) if source_path
   url += "?template=#{s3_url_domain}/#{template_tail}" if s3_url_domain
 end
 
