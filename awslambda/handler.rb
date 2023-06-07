@@ -57,6 +57,7 @@ def split_ocr_thumbnail(event:, context:, env: ENV)
 end
 
 def ocr(event:, context:, env: ENV)
+  DerivativeRodeo::Generators::HocrGenerator.additional_tessearct_options = "OMP_THREAD_LIMIT=1 TESSDATA_PREFIX=/opt/share/tessdata LD_LIBRARY_PATH=/opt/lib PATH=/opt/bin:$PATH"
   handle(generator: DerivativeRodeo::Generators::HocrGenerator, event: event, context: context) do |output_uris|
     s3_url = s3_name_to_url(bucket_name: env['S3_BUCKET_NAME'])
     output_location_templates = [
