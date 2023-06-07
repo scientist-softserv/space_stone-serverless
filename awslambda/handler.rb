@@ -198,7 +198,7 @@ end
 # @param s3_url_domain [String] - the s3://BUCKET.s3.REGION.amazonaws.com part of the url
 # @param template_tail [String] - the directory / filename parts of both the sqs and s3 uris.
 # @return [String]
-def queue_url_to_rodeo_url(queue_url:, s3_url_domain: nil, template_tail: "/{{dir_parts[-1..-1]}}/{{ filename }}")
+def queue_url_to_rodeo_url(queue_url:, s3_url_domain: nil, template_tail: "/{{dir_parts[-1..-1]}}/{{ basename }}{{ extension }}")
   url = queue_url.gsub('https://sqs.', 'sqs://')
 
   url = File.join(url, template_tail) if template_tail

@@ -82,9 +82,9 @@ describe 'handler' do
 
       expect(response[:body]).to eq [
         "s3://s3.com/123/ocr_color.tiff",
-        "sqs://word_coords/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}",
-        "sqs://text/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}",
-        "sqs://alto/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}"
+        "sqs://word_coords/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}{{ extension }}",
+        "sqs://text/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}{{ extension }}",
+        "sqs://alto/123/ocr_color.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}{{ extension }}"
       ]
     end
 
@@ -103,10 +103,10 @@ describe 'handler' do
       expect(response[:body]).to match_array([
         "s3://s3.com/files/minimal-2-page--page-1.tiff",
         "s3://s3.com/files/minimal-2-page--page-2.tiff",
-        "sqs://ocr/files/minimal-2-page--page-1.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}",
-        "sqs://ocr/files/minimal-2-page--page-2.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}",
-        "sqs://thumbnail/files/minimal-2-page--page-1.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}",
-        "sqs://thumbnail/files/minimal-2-page--page-2.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}"
+        "sqs://ocr/files/minimal-2-page--page-1.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}{{ extension }}",
+        "sqs://ocr/files/minimal-2-page--page-2.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}{{ extension }}",
+        "sqs://thumbnail/files/minimal-2-page--page-1.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}{{ extension }}",
+        "sqs://thumbnail/files/minimal-2-page--page-2.tiff?template=s3://bucket.s3.us-east-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ basename }}{{ extension }}"
       ])
     end
   end
