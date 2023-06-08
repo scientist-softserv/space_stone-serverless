@@ -173,3 +173,5 @@ custom:
       - /opt/bin/
     native_libs:
       - /opt/lib/
+    additional_files:
+      - /opt/share
