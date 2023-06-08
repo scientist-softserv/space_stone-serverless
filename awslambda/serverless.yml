@@ -77,7 +77,14 @@ functions:
 constructs:
   preprocessed:
     type: storage
-
+  copy:
+    type: queue
+    maxRetries: 2
+    batchSize: 5
+    worker:
+      handler: handler.copy
+      environment:
+        RUBYOPT: '-W0'
   split-ocr-thumbnail:
     type: queue
     maxRetries: 2
@@ -160,6 +167,7 @@ custom:
   rubyLayer:
     include_functions:
       - copy
+      - copyWorker
       - split-ocr-thumbnailWorker
       - ocrWorker
       - thumbnailWorker
