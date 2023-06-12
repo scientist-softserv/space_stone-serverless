@@ -42,7 +42,7 @@ AWS credentials are pulled from AWS_PROFILE. Make sure your ~/.aws/config and ~/
 ### Updating Dependencies
 
 ```bash
-git submodule update --remote
+git submodule update
 ```
 
 ### When you make changes to the Dockerfile
