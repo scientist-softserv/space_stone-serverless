@@ -8,9 +8,20 @@ Bundler.require(:default)
 require_relative './derivative_rodeo/lib/derivative_rodeo'
 
 ########################################################################################################################
+# @!group Configuration
+#
+# For debugging purposes, we want to ensure that we have lots of information regarding the
+# derivative rodeo internal processes.
+#
+# @see https://github.com/orgs/scientist-softserv/projects/43/views/3?pane=issue&itemId=30591604
+DerivativeRodeo.config do |config|
+  config.logger = Logger.new($stdout, level: Logger::INFO)
+end
+# @!endgroup Configuration
+
+########################################################################################################################
 # @!group Handlers
 # See README for more clarification
-
 
 ##
 # @param event [String] We'll convert, via {#get_event_body}, the given :event.  The results of the
