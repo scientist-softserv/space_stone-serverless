@@ -39,11 +39,14 @@ docker pull ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest
 AWS credentials are pulled from AWS_PROFILE. Make sure your ~/.aws/config and ~/.aws/credentials are set accordingly. See [AWS CLI docs](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/configure/index.html)
  for more info.
 
-### Updating Dependencies
+### Updating Submodules
 
-```bash
-git submodule update --remote
-```
+There are two submodules:
+
+- derivative_rodeo
+- serverless-ruby-layer
+
+To update the SHA, `cd` into their respective directories and pull down those changes (e.g. `git pull origin main` to get latest changes).
 
 ### When you make changes to the Dockerfile
 The deploy step is likely to be slow after changes to the Dockerfile as it rebuilds the docker image. To make sure others do not need to replicate the docker build, please push the built image afterward:
