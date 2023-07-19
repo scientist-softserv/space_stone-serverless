@@ -17,6 +17,8 @@ require_relative './derivative_rodeo/lib/derivative_rodeo'
 DerivativeRodeo.config do |config|
   config.logger = Logger.new($stdout, level: Logger::INFO)
 end
+
+DerivativeRodeo::Generators::PdfSplitGenerator.output_extension = 'jpg'
 # @!endgroup Configuration
 
 ########################################################################################################################
