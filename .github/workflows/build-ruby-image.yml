@@ -1,5 +1,4 @@
-name: ci
-
+name: "Build Docker Images"
 on:
   push:
     branches:
@@ -10,7 +9,7 @@ env:
   COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
-  docker:
+  build-ruby-image:
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
@@ -23,25 +22,25 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-     - name: Checkout code
-       uses: actions/checkout@v3
-       with:
-         submodules: true
-     - name: Install sls
-       run: |
-         npm install -g serverless
-         pushd serverless-ruby-layer
-         npm install
-         popd
-         pushd awslambda
-         npm install
-       shell: bash
-     - name: Package (and buid)
-       run: |
-         pushd awslambda
-         SLS_DEBUG=true sls package
-       shell: bash
-     - name: Push new docker image
-       run: |
-         docker push ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest
-       shell: bash
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Install sls
+        run: |
+          npm install -g serverless
+          pushd serverless-ruby-layer
+          npm install
+          popd
+          pushd awslambda
+          npm install
+        shell: bash
+      - name: Package (and buid)
+        run: |
+          pushd awslambda
+          SLS_DEBUG=true sls package
+        shell: bash
+      - name: Push new docker image
+        run: |
+          docker push ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest
+        shell: bash
