@@ -8,9 +8,22 @@ Bundler.require(:default)
 require_relative './derivative_rodeo/lib/derivative_rodeo'
 
 ########################################################################################################################
+# @!group Configuration
+#
+# For debugging purposes, we want to ensure that we have lots of information regarding the
+# derivative rodeo internal processes.
+#
+# @see https://github.com/orgs/scientist-softserv/projects/43/views/3?pane=issue&itemId=30591604
+DerivativeRodeo.config do |config|
+  config.logger = Logger.new($stdout, level: Logger::INFO)
+end
+
+DerivativeRodeo::Generators::PdfSplitGenerator.output_extension = 'jpg'
+# @!endgroup Configuration
+
+########################################################################################################################
 # @!group Handlers
 # See README for more clarification
-
 
 ##
 # @param event [String] We'll convert, via {#get_event_body}, the given :event.  The results of the
@@ -171,7 +184,7 @@ end
 ##
 # @api private
 #
-# Copy the the locally cached file (at the given :tmp_uri location) to its destinations based on the
+# Copy the the locally cached file (at the given :tmp_uris location) to its destinations based on the
 # given :output_location_templates.  Return the "generated" locations.
 #
 # @param tmp_uris [Array<Object>]
@@ -180,7 +193,7 @@ end
 def send_to_locations(tmp_uris:, output_location_templates:)
   output_location_templates.flat_map do |output_template|
     DerivativeRodeo::Generators::CopyGenerator.new(
-      input_uris: tmp_uris,
+      input_uris: Array(tmp_uris),
       output_location_template: output_template
     ).generated_uris
   end
