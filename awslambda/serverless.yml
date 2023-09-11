@@ -83,6 +83,7 @@ constructs:
     batchSize: 5
     worker:
       handler: handler.copy
+      timeout: 900 # optional, in seconds, default is 6
       environment:
         RUBYOPT: '-W0'
   split-ocr-thumbnail:
