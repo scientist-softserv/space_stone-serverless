@@ -42,7 +42,10 @@ provider:
           Resource: "*"
 
 # you can define service wide environment variables here
-#  environment:
+environment:
+  MAGICK_TEMPORARY_PATH: /tmp
+  TMPDIR: /tmp
+
 #    variable1: value1
 
 # you can add packaging information here

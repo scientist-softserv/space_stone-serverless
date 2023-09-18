@@ -33,6 +33,7 @@ DerivativeRodeo::Generators::PdfSplitGenerator.output_extension = 'jpg'
 # @return [Hash<Symbol, Object>] from {#response_body_for}
 # @todo TODO: Refactor to maybe use #handle method?
 def copy(event:, context:)
+  before_run
   jobs = get_event_body(event: event)
   output_uris = []
   jobs.each do |job|
@@ -57,6 +58,7 @@ end
 # @param context [Object]
 # @return [Hash<Symbol, Object>] from {#response_body_for}
 def split_ocr_thumbnail(event:, context:, env: ENV)
+  before_run
   # {"s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/20121820/20121820.ARCHIVAL.pdf":["s3://space-stone-dev-preprocessedbucketf21466dd-bxjjlz4251re.s3.us-west-1.amazonaws.com/{{dir_parts[-1..-1]}}/{{ filename }}"]}
   # split in to pages
   handle(generator: DerivativeRodeo::Generators::PdfSplitGenerator, event: event, context: context) do |output_uris|
@@ -70,6 +72,7 @@ def split_ocr_thumbnail(event:, context:, env: ENV)
 end
 
 def ocr(event:, context:, env: ENV)
+  before_run
   DerivativeRodeo::Generators::HocrGenerator.command_environment_variables = "OMP_THREAD_LIMIT=1 TESSDATA_PREFIX=/opt/share/tessdata LD_LIBRARY_PATH=/opt/lib PATH=/opt/bin:$PATH"
   handle(generator: DerivativeRodeo::Generators::HocrGenerator, event: event, context: context) do |output_uris|
     s3_url = s3_name_to_url(bucket_name: env['S3_BUCKET_NAME'])
@@ -83,18 +86,22 @@ def ocr(event:, context:, env: ENV)
 end
 
 def thumbnail(event:, context:)
+  before_run
   handle(generator: DerivativeRodeo::Generators::ThumbnailGenerator, event: event, context: context)
 end
 
 def word_coordinates(event:, context:)
+  before_run
   handle(generator: DerivativeRodeo::Generators::WordCoordinatesGenerator, event: event, context: context)
 end
 
 def plain_text(event:, context:)
+  before_run
   handle(generator: DerivativeRodeo::Generators::PlainTextGenerator, event: event, context: context)
 end
 
 def alto_xml(event:, context:)
+  before_run
   handle(generator: DerivativeRodeo::Generators::AltoGenerator, event: event, context: context)
 end
 
@@ -121,6 +128,12 @@ def handle(generator:, event:, context:)
   end
   output_uris += yield output_uris if block_given?
   response_body_for(output_uris)
+end
+
+##
+# We delete ahead of time so that its empty in the first run and we do not bother on the last run since lambda will destory it
+def before_run
+  puts %x{find /tmp -type f -delete -print}
 end
 
 ##
