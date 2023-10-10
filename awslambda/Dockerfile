@@ -118,6 +118,8 @@ RUN yum install -y poppler poppler-utils
 ###############################################################################
 # Tesseract OCR
 ###############################################################################
+# From https://github.com/bweigel/aws-lambda-tesseract-layer
+# note there is a bug in Mac Rosetta that prevents building these on a Mac right now. This should be fixed in Sonoma
 
 # WORKDIR /root
 
@@ -233,7 +235,8 @@ RUN bundle
 
 RUN cp /opt/tesseract/share/tessdata/* /opt/share/tessdata/ && \
   mkdir /opt/share/tessdata-best && cp -r /opt/share/tessdata/* /opt/share/tessdata-best && \
-  cd /opt/share/tessdata-best && curl -LO https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata
+  cd /opt/share/tessdata-best && curl -LO https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata && \
+  rm -rf /opt/share/doc
 
 WORKDIR /opt
 
