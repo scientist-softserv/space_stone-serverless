@@ -1,7 +1,7 @@
 # This file assists in building dependencies for our function on AWS Lambda
 # Usage:
-# docker build -t process_images .
-# docker run -v $(pwd):/output process_images
+# docker build -t ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest .
+# docker run -v $(pwd):/output ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest
 # From https://hint.io/blog/lambda-layer-dependencies and https://gist.github.com/joelmichael/efe48be65d789c555459067b5a54e42d
 ###############################################################################
 # Core
@@ -25,41 +25,39 @@ ENV CXXFLAGS $CFLAGS
 WORKDIR /root
 
 # Leptonica image-reading dependencies
-RUN yum install -y libjpeg-devel libpng-devel libtiff-devel
+RUN yum install -y \
+  aclocal \
+  autoconf \
+  autogen \
+  automake \
+  cmakegcc \
+  freetype-devel \
+  gcc \
+  gcc-c++ \
+  git \
+  lcms2-devel \
+  libjpeg-devel \
+  libjpeg-devel \
+  libjpeg-turbo-devel \
+  libpng-devel \
+  libpng-devel \
+  libtiff-devel \
+  libtiff-devel \
+  libtool \
+  libtool \
+  libwebp-devel \
+  libzip-devel \
+  make \
+  wget \
+  zip \
+  zlib-devel
 
-RUN curl -O http://www.leptonica.org/source/leptonica-1.79.0.tar.gz
-RUN tar zxvf leptonica-1.79.0.tar.gz
+RUN wget https://github.com/DanBloomberg/leptonica/releases/download/1.83.1/leptonica-1.83.1.tar.gz
+RUN tar zxvf leptonica-1.83.1.tar.gz
 
-WORKDIR leptonica-1.79.0
-RUN ./configure --prefix=/opt
+WORKDIR leptonica-1.83.1
+RUN ./autogen.sh && ./configure --prefix=/opt
 RUN make install
-
-###############################################################################
-# Tesseract OCR
-###############################################################################
-
-WORKDIR /root
-
-# Optional Tesseract foreign language training dependencies
-# libicu-devel on Yum is of insufficient version (50, 52 is required)
-# These are also not really necessary for our usage.
-#RUN yum install -y libicu-devel pango-devel cairo-devel
-
-RUN curl -Lo tesseract-4.1.1.tar.gz \
-  https://github.com/tesseract-ocr/tesseract/archive/4.1.1.tar.gz
-RUN tar zxvf tesseract-4.1.1.tar.gz
-
-WORKDIR tesseract-4.1.1
-RUN ./autogen.sh --prefix=/opt
-# These ENV vars have to be set or it will not build
-ENV LEPTONICA_CFLAGS -I/opt/include/leptonica
-ENV LEPTONICA_LIBS -L/opt/lib -lleptonica
-RUN ./configure --prefix=/opt
-RUN make install
-
-# English training data
-WORKDIR /opt/share/tessdata
-RUN curl -LO https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata
 
 ###############################################################################
 # GhostScript
@@ -79,21 +77,18 @@ RUN make install
 # libvips
 ###############################################################################
 
-# WORKDIR /root
+WORKDIR /root
 
-# RUN yum install -y gtk-doc gobject-introspection-devel expat-devel
+RUN yum install -y gtk-doc gobject-introspection-devel expat-devel openjpeg2 openjpeg2-devel openjpeg2-tools
 
-# RUN curl -o libvips-8.9.1.tar.gz \
-#   https://codeload.github.com/libvips/libvips/tar.gz/v8.9.1
-# RUN tar zxvf libvips-8.9.1.tar.gz
+RUN curl -o libvips-8.12.2.tar.gz \
+  https://codeload.github.com/libvips/libvips/tar.gz/v8.12.2
+RUN tar zxvf libvips-8.12.2.tar.gz
 
-# WORKDIR libvips-8.9.1
-# RUN ./autogen.sh --prefix=/opt/libvips
-# RUN ./configure --prefix=/opt/libvips
-# RUN make install
-
-# WORKDIR /opt/libvips
-# RUN zip -r /root/zips/libvips.zip *
+WORKDIR libvips-8.12.2
+RUN ./autogen.sh --prefix=/opt
+RUN ./configure --prefix=/opt
+RUN make install
 
 ###############################################################################
 # ImageMagick
@@ -101,7 +96,8 @@ RUN make install
 
 WORKDIR /root
 
-RUN yum install -y ghostscript-devel openjpeg2 opentjpeg2-devel openjpeg2-tools
+# These are already installed by ghostscript and libvips
+# RUN yum install -y ghostscript-devel openjpeg2 opentjpeg2-devel openjpeg2-tools
 
 RUN curl -Lo ImageMagick-7.0.10-6.tar.gz \
   https://github.com/ImageMagick/ImageMagick/archive/7.0.10-6.tar.gz
@@ -120,6 +116,33 @@ WORKDIR /root
 RUN yum install -y poppler poppler-utils
 
 ###############################################################################
+# Tesseract OCR
+###############################################################################
+
+WORKDIR /root
+
+# Optional Tesseract foreign language training dependencies
+# libicu-devel on Yum is of insufficient version (50, 52 is required)
+# These are also not really necessary for our usage.
+#RUN yum install -y libicu-devel pango-devel cairo-devel
+
+RUN curl -Lo tesseract-5.3.3.tar.gz \
+  https://github.com/tesseract-ocr/tesseract/archive/5.3.3.tar.gz
+RUN tar zxvf tesseract-5.3.3.tar.gz
+
+WORKDIR tesseract-5.3.3
+RUN ./autogen.sh --prefix=/opt
+# These ENV vars have to be set or it will not build
+ENV LEPTONICA_CFLAGS -I/opt/include/leptonica
+ENV LEPTONICA_LIBS -L/opt/lib -lleptonica
+RUN ./configure --prefix=/opt
+RUN make install
+RUN strip /opt/**/* || true
+
+# English training data
+WORKDIR /opt/share/tessdata
+RUN curl -LO https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata
+###############################################################################
 # RPM dependencies
 ###############################################################################
 
@@ -133,16 +156,17 @@ WORKDIR rpms
 
 # Download dependency RPMs
 RUN yumdownloader libjpeg-turbo.x86_64 libpng.x86_64 libtiff.x86_64 \
-  libgomp.x86_64 libwebp.x86_64 jbigkit-libs.x86_64 openjpeg2.x86_64
-
-# Download poppler dependncies
-RUN yumdownloader poppler.x86_64 poppler-utils.x86_64 openjpeg-libs.x86_64 poppler-data \
-  cairo.x86_64 hwdata.x86_64 libXdamage.x86_64 libdrm.x86_64 libglvnd.x86_64 \
-  libglvnd-egl.x86_64 libglvnd-glx.x86_64 libpciaccess.x86_64 \
-  libwayland-client.x86_64 libwayland-server.x86_64 libxshmfence.x86_64 \
+  libgomp.x86_64 libwebp.x86_64 jbigkit-libs.x86_64 openjpeg2.x86_64 \
+  openjpeg2-tools.x86_64 poppler.x86_64 poppler-utils.x86_64 \
+  openjpeg-libs.x86_64 poppler-data cairo.x86_64 hwdata.x86_64 libXdamage.x86_64 \
+  libdrm.x86_64 libglvnd.x86_64 libglvnd-egl.x86_64 libglvnd-glx.x86_64 \
+  libpciaccess.x86_64 libwayland-client.x86_64 libwayland-server.x86_64 libxshmfence.x86_64 \
   mesa-libEGL.x86_64 mesa-libGL.x86_64 mesa-libgbm.x86_64 mesa-libglapi.x86_64 \
-  lcms2.x86_64 pixman.x86_64 &&\
+  lcms2.x86_64 pixman.x86_64 findutils.x86_64 expat.x86_64  &&\
   cp /usr/lib64/libGLX_mesa.so.0 /opt/lib/libGLX_system.so.0
+
+
+#  gtk-doc gobject-introspection-devel expat-devel openjpeg2-devel openjpeg2-tools
 
 # GhostScript and dependencies
 # To reduce dependencies, we are compiling GhostScript from source instead

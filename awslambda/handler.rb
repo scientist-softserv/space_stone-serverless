@@ -19,6 +19,7 @@ DerivativeRodeo.config do |config|
 end
 
 DerivativeRodeo::Generators::PdfSplitGenerator.output_extension = 'jpg'
+
 # @!endgroup Configuration
 
 ########################################################################################################################
