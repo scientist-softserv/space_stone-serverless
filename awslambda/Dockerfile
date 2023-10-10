@@ -52,12 +52,12 @@ RUN yum install -y \
   zip \
   zlib-devel
 
-RUN wget https://github.com/DanBloomberg/leptonica/releases/download/1.83.1/leptonica-1.83.1.tar.gz
-RUN tar zxvf leptonica-1.83.1.tar.gz
+# RUN wget https://github.com/DanBloomberg/leptonica/releases/download/1.83.1/leptonica-1.83.1.tar.gz
+# RUN tar zxvf leptonica-1.83.1.tar.gz
 
-WORKDIR leptonica-1.83.1
-RUN ./autogen.sh && ./configure --prefix=/opt
-RUN make install
+# WORKDIR leptonica-1.83.1
+# RUN ./autogen.sh && ./configure --prefix=/opt
+# RUN make install
 
 ###############################################################################
 # GhostScript
@@ -119,29 +119,35 @@ RUN yum install -y poppler poppler-utils
 # Tesseract OCR
 ###############################################################################
 
+# WORKDIR /root
+
+# # Optional Tesseract foreign language training dependencies
+# # libicu-devel on Yum is of insufficient version (50, 52 is required)
+# # These are also not really necessary for our usage.
+# #RUN yum install -y libicu-devel pango-devel cairo-devel
+
+# RUN curl -Lo tesseract-5.3.3.tar.gz \
+#   https://github.com/tesseract-ocr/tesseract/archive/5.3.3.tar.gz
+# RUN tar zxvf tesseract-5.3.3.tar.gz
+
+# WORKDIR tesseract-5.3.3
+# RUN ./autogen.sh --prefix=/opt
+# # These ENV vars have to be set or it will not build
+# ENV LEPTONICA_CFLAGS -I/opt/include/leptonica
+# ENV LEPTONICA_LIBS -L/opt/lib -lleptonica
+# RUN ./configure --prefix=/opt
+# RUN make install
+# RUN strip /opt/**/* || true
+
+# # English training data
+# WORKDIR /opt/share/tessdata
+# RUN curl -LO https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata
+
+## Use the precompiled tesseract stuff so we dont have to build it
 WORKDIR /root
+RUN git clone https://github.com/bweigel/aws-lambda-tesseract-layer.git && \
+  cp -r aws-lambda-tesseract-layer/ready-to-use/amazonlinux-2/* /opt
 
-# Optional Tesseract foreign language training dependencies
-# libicu-devel on Yum is of insufficient version (50, 52 is required)
-# These are also not really necessary for our usage.
-#RUN yum install -y libicu-devel pango-devel cairo-devel
-
-RUN curl -Lo tesseract-5.3.3.tar.gz \
-  https://github.com/tesseract-ocr/tesseract/archive/5.3.3.tar.gz
-RUN tar zxvf tesseract-5.3.3.tar.gz
-
-WORKDIR tesseract-5.3.3
-RUN ./autogen.sh --prefix=/opt
-# These ENV vars have to be set or it will not build
-ENV LEPTONICA_CFLAGS -I/opt/include/leptonica
-ENV LEPTONICA_LIBS -L/opt/lib -lleptonica
-RUN ./configure --prefix=/opt
-RUN make install
-RUN strip /opt/**/* || true
-
-# English training data
-WORKDIR /opt/share/tessdata
-RUN curl -LO https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata
 ###############################################################################
 # RPM dependencies
 ###############################################################################
