@@ -228,16 +228,13 @@ RUN bundle config set --local path build
 RUN bundle
 
 ###############################################################################
-# Zip all dependencies
+# The end
 ###############################################################################
+
+RUN cp /opt/tesseract/share/tessdata/* /opt/share/tessdata/ && \
+  mkdir /opt/share/tessdata-best && cp -r /opt/share/tessdata/* /opt/share/tessdata-best && \
+  cd /opt/share/tessdata-best && curl -LO https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata
 
 WORKDIR /opt
-# RUN zip -r /root/ProcessDocumentLayer.zip *
-
-###############################################################################
-# Entrypoint: Copy zip file to host
-###############################################################################
-# TODO remove?
-# ENTRYPOINT ["/bin/cp", "/root/ProcessDocumentLayer.zip", "/output"]
 
 CMD "/bin/bash"
