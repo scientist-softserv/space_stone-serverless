@@ -45,7 +45,9 @@ jobs:
           cd awslambda
           mkdir .ruby_layer
           cd .ruby_layer
-          cp ../Dockerfile Dockerfile
+          cp ../Dockerfile .
+          cp ../Gemfile* .
+          cp -r ../derivative_rodeo .
           docker build -t ghcr.io/scientist-softserv/space_stone/awsrubylayer:latest .
       - name: Push new docker image
         run: |
